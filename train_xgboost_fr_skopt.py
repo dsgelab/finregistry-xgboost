@@ -38,8 +38,8 @@ def train_xgboost_fr_skopt():
     #PARAMETERS
     parser.add_argument("--outdir",help="Full path to the output directory.",type=str)
     parser.add_argument("--allvars",help="Full path to the text file containing names of all variables used in the model.",type=str)
-    parser.add_argument("--targetvar",help="Target variable for prediction (default=COVIDVax).",type=str,default='COIDVax')
-    parser.add_argument("--nproc",help="Number of parallel processes used default=32).",type=int,default=32)
+    parser.add_argument("--targetvar",help="Target variable for prediction (default=COVIDVax).",type=str,default='COVIDVax')
+    parser.add_argument("--nproc",help="Number of parallel processes used default=2).",type=int,default=2)
     parser.add_argument("--varname",help="Variable name.",type=str,default='var')
     parser.add_argument("--trainfile",help="Full path to the file containing training samples.",type=str)
     parser.add_argument("--testfile",help="Full path to the file containing test samples.",type=str)
