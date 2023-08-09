@@ -29,3 +29,11 @@ More instructions regarding conda-pack in ePouta can be found from the FinRegist
 Coming soon...
 
 ## Usage instructions
+
+## Output
+
+## Notes
+
+- Some of the hyperparameter ranges are currently hard-coded. These could be changed in the future so that they can be set using command line arguments.
+- Objective is currently hard-coded as binary:logistic, should be changed if using the model in a regression task.
+

@@ -23,8 +23,8 @@ import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 
-print(sklearn.__version__)
-print(xgb.__version__)
+#print(sklearn.__version__)
+#print(xgb.__version__)
 logging.shutdown()
 
 def train_xgboost_fr_skopt():
@@ -54,7 +54,6 @@ def train_xgboost_fr_skopt():
     args = parser.parse_args()
     
     #set parameters for the run
-    #n_iter = 75 #number of hyperparameter combinations sampled for each cv run
     seed = 123
 
     start = time()
@@ -68,12 +67,12 @@ def train_xgboost_fr_skopt():
     logging.info("model name: "+args.varname)
 
     #Hyperparameter grid for XGboost
-    params = { 'max_depth': [3, 5, 6, 7],
+    params = { 'max_depth': args.max_depth,
            'learning_rate': [0.0001, 0.001, 0.01, 0.1, 0.2, 0.3],
            #'subsample': np.arange(0.5, 1.0, 0.1),
            #'colsample_bytree': np.arange(0.4, 1.0, 0.1),
            #'colsample_bylevel': np.arange(0.4, 1.0, 0.1),
-           'n_estimators': [100,300,800],
+           'n_estimators': args.n_estimators,
           'gamma': np.linspace(0,15,20),#[i for i in range(0,16)],
             'reg_alpha': [0],#[0,0.001,0.01,0.1,1,10,100],
             'reg_lambda': np.linspace(1,20,10)}#[1,10,100]}
@@ -102,12 +101,7 @@ def train_xgboost_fr_skopt():
     
     #compute class weights
     ratio = float(class0_count)/class1_count
-    #params['scale_pos_weight'] = ratio
-    #classes_weights = class_weight.compute_class_weight(class_weight='balanced',classes=np.unique(y_train),y=y_train)
-    print("ratio:")
-    print(ratio)
-    #print('classes_weights:')
-    #print(classes_weights)
+    
     logging.info(args.varname+" training set read in.")
     #initialize model and hyperparameter grid
     #determine whether calss weights are used or not
@@ -214,14 +208,12 @@ def train_xgboost_fr_skopt():
     sorted_AUprcs = np.array(bootstrapped_AUprcs)
     sorted_AUprcs.sort()
 
-    # Computing the lower and upper bound of the 90% confidence interval
-    # You can change the bounds percentiles to 0.025 and 0.975 to get
-    # a 95% confidence interval instead.
-    confidence_lower_AUC = sorted_AUCs[int(0.05 * len(sorted_AUCs))]
-    confidence_upper_AUC = sorted_AUCs[int(0.95 * len(sorted_AUCs))]
+    # Computing the lower and upper bound of the 95% confidence interval
+    confidence_lower_AUC = sorted_AUCs[int(0.025 * len(sorted_AUCs))]
+    confidence_upper_AUC = sorted_AUCs[int(0.975 * len(sorted_AUCs))]
     mean_AUC = np.mean(sorted_AUCs)
-    confidence_lower_AUprc = sorted_AUprcs[int(0.05 * len(sorted_AUprcs))]
-    confidence_upper_AUprc = sorted_AUprcs[int(0.95 * len(sorted_AUprcs))]
+    confidence_lower_AUprc = sorted_AUprcs[int(0.025 * len(sorted_AUprcs))]
+    confidence_upper_AUprc = sorted_AUprcs[int(0.975 * len(sorted_AUprcs))]
     mean_AUprc = np.mean(sorted_AUprcs)
 
     #save the confidence intervals to a file
