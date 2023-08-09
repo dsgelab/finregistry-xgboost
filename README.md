@@ -22,7 +22,7 @@ More instructions regarding conda-pack in ePouta can be found from the FinRegist
 
 ### Puhti
 
-
+If you use this code at CSC's Puhti machine (for example INTERVENE UKBB data), the module python-data already has almost all of the dependencies installed. You only need to manually install the scikit-optimize package follwing the instructions here: https://docs.csc.fi/apps/python/#installing-python-packages-to-existing-modules .
 
 ### SD Desktop
 
