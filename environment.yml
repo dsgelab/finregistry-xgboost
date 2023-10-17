@@ -1,9 +1,9 @@
-name: fr_xgb
+ name: fr_xgb
 channels:
   - conda-forge
 dependencies:
   - python=3.9
-  - numpy
+  - numpy=1.22
   - pandas
   - xgboost
   - scikit-learn
