@@ -102,6 +102,7 @@ with open(all_vars_file,'rt') as infile:
 #read in the test data
 test_file = args.testfile
 df = pd.read_csv(test_file,usecols=all_vars+[args.targetvar])
+df = df[all_vars+[args.targetvar]] #to make sure the order of features is the same as in all_vars_file
 
 #reformat the data for xgboost
 import numpy as np
