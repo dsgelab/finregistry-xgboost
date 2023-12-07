@@ -23,8 +23,10 @@ import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 
-#print(sklearn.__version__)
-#print(xgb.__version__)
+print("sklearn version:")
+print(sklearn.__version__)
+print("xgb version:")
+print(xgb.__version__)
 logging.shutdown()
 
 def train_xgboost_fr_skopt():
@@ -45,20 +47,33 @@ def train_xgboost_fr_skopt():
     parser.add_argument("--testfile",help="Full path to the file containing test samples.",type=str)
     parser.add_argument("--niter",help="Number of hyperparameter combinatons sampled for each CV run (default=75).",type=int,default=75)
     parser.add_argument("--tree_method",help="Default = hist.",type=str,default="hist",choices=['hist','gpu_hist'])
-    parser.add_argument("--n_estimators",help="Comma-separated list for input for n_estimators xgboost paramemter.",
+    parser.add_argument("--n_estimators",help="List for input for n_estimators xgboost paramemter.",
                         type=int,default=[100,300,800],nargs='+')
-    parser.add_argument("--max_depth",help="Comma-separated list for input for max_depth xgboost parameter.",
+    parser.add_argument("--max_depth",help="List for input for max_depth xgboost parameter.",
                         type=int,default=[3, 5, 6, 10],nargs='+')
+    parser.add_argument("--subsample",help="List of options for subsample xgboost parameter.",type=float,default=np.arange(0.5,0.95,20),nargs='+')
+    parser.add_argument("--colsample_bytree",help="List of options for colsample_bytree xgboost parameter.",type=float,default=np.arange(0.5,0.95,20),nargs='+')
     parser.add_argument("--balanced",help="1 if balanced class weights are used (=default), 0 if not.",type=int,choices=[1,0],default=1)
+    parser.add_argument("--seed",help="Random number generator seed (default=123).",type=int,default=123)
    
     args = parser.parse_args()
     
     #set parameters for the run
-    seed = 123
+    seed = args.seed
 
     start = time()
 
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', filename=args.outdir+args.varname+'-xgbrun.log',level=logging.INFO,filemode='w')
+    logging.info("PACKAGE VERSIONS:")
+    logging.info("sklearn: "+str(sklearn.__version__))
+    logging.info("xgboost: "+str(xgb.__version__))
+    logging.info("pandas: "+str(pd.__version__))
+    logging.info("numpy: "+str(np.__version__))
+    logging.info("matplotlib: "+str(matplotlib.__version__))
+    logging.info("skopt: "+str(skopt.__version__))
+    logging.info("csv: "+str(csv.__version__))
+    logging.info("logging: "+str(logging.__version__))
+
     logging.info("INFO ON THE PARAMETERS AND FILE PATHS OF THIS RUN:")
     logging.info("training data: "+args.trainfile)
     logging.info("test data: "+args.testfile)
@@ -69,8 +84,8 @@ def train_xgboost_fr_skopt():
     #Hyperparameter grid for XGboost
     params = { 'max_depth': args.max_depth,
            'learning_rate': [0.0001, 0.001, 0.01, 0.1, 0.2, 0.3],
-           #'subsample': np.arange(0.5, 1.0, 0.1),
-           #'colsample_bytree': np.arange(0.4, 1.0, 0.1),
+           'subsample': args.subsample,
+           'colsample_bytree': args.colsample_bytree,
            #'colsample_bylevel': np.arange(0.4, 1.0, 0.1),
            'n_estimators': args.n_estimators,
           'gamma': np.linspace(0,15,20),#[i for i in range(0,16)],
@@ -105,9 +120,9 @@ def train_xgboost_fr_skopt():
     logging.info(args.varname+" training set read in.")
     #initialize model and hyperparameter grid
     #determine whether calss weights are used or not
-    if args.balanced==1: xgb_model = xgb.XGBClassifier(objective="binary:logistic", random_state=42,use_label_encoder=False,eval_metric='logloss',**{"tree_method": args.tree_method}, scale_pos_weight=ratio,n_jobs=args.nproc)
-    else: xgb_model = xgb.XGBClassifier(objective="binary:logistic", random_state=42,use_label_encoder=False,eval_metric='logloss',**{"tree_method": args.tree_method},n_jobs=args.nproc)
-    clf = skopt.BayesSearchCV(estimator=xgb_model, search_spaces=params, cv=5, n_iter=args.niter, random_state=seed, verbose=2, n_jobs=1,n_points=2)
+    if args.balanced==1: xgb_model = xgb.XGBClassifier(objective="binary:logistic", seed=args.seed,use_label_encoder=False,eval_metric='logloss',**{"tree_method": args.tree_method}, scale_pos_weight=ratio,n_jobs=args.nproc)
+    else: xgb_model = xgb.XGBClassifier(objective="binary:logistic", seed=args.seed,use_label_encoder=False,eval_metric='logloss',**{"tree_method": args.tree_method},n_jobs=args.nproc)
+    clf = skopt.BayesSearchCV(estimator=xgb_model, search_spaces=params, cv=5, n_iter=args.niter, random_state=args.seed, verbose=2, n_jobs=1,n_points=2)
     logging.info(args.varname+" XGB model initialized.")
     #fit the model
     clf.fit(X_train,y_train,callback=DeltaXStopper(1e-8))
