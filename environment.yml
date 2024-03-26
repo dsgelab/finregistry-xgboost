@@ -1,4 +1,4 @@
- name: fr_xgb
+name: fr_xgb
 channels:
   - conda-forge
 dependencies:
