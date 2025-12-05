@@ -22,7 +22,7 @@ More instructions regarding conda-pack in ePouta can be found from the FinRegist
 
 ### Puhti
 
-
+If you use this code at CSC's Puhti machine (for example INTERVENE UKBB data), the module python-data already has almost all of the dependencies installed. You only need to manually install the scikit-optimize package follwing the instructions here: https://docs.csc.fi/apps/python/#installing-python-packages-to-existing-modules .
 
 ### SD Desktop
 
@@ -76,6 +76,43 @@ The code outputs the following files:
 - ``args.outdir+args.varname+"_xgb_precision_recall_curve.png"`` = precision-recall curve
 - ``args.outdir+args.varname+"_xgb_roc_curve.png"`` = ROC-curve
 - ``args.outdir+args.varname+"_xgb_AUPRC_AUC_CIs.txt"`` = AUPRC and AUC and their 95% confidence intervals estimated by bootstrapping (2000 samples).
+
+## Loading a saved model
+
+The training script saves the hyperparemeter-optimized model in to a pickle-file as detailed in the previous section. To load the saved model into Python, you can use the following piece of code:
+
+```
+import pickle
+model_file = args.outdir+args.varname+"_best_xgb_model.pkl"
+model = pickle.load(open(model_file,'rb'))
+```
+
+where you obviously need to replace the ``model_file`` variable value with the correct file path. Note that in order to avoid issues, it is best to read in the test data file exactly as is done in the training script:
+
+```
+import pandas as pd
+import csv
+
+#read in the variable names used by the model
+all_vars_file = args.allvars
+with open(all_vars_file,'rt') as infile:
+        r = csv.reader(infile,delimiter=',')
+        for row in r: all_vars = row
+
+#read in the test data
+test_file = args.testfile
+df = pd.read_csv(test_file,usecols=all_vars+[args.targetvar])
+df = df[all_vars+[args.targetvar]] #to make sure the order of features is the same as in all_vars_file
+
+#reformat the data for xgboost
+import numpy as np
+X_test, y_test =  df.drop(args.targetvar,axis=1).values, df.loc[:,args.targetvar].values
+
+#make predictons
+X_test_pred = model.predict_proba(X_test)
+```
+
+where again, you should replace the file paths and the target variable name.
 
 ## Notes
 
