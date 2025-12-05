@@ -1,0 +1,11 @@
+name: fr_xgb
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - numpy
+  - pandas
+  - xgboost
+  - scikit-learn
+  - scikit-optimize
+  - matplotlib
