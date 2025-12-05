@@ -15,7 +15,7 @@ from time import time
 from glob import glob
 
 from sklearn.utils import class_weight
-from sklearn.metrics import average_precision_score,roc_auc_score,roc_curve,precision_recall_curve,ConfusionMatrixDisplay
+from sklearn.metrics import average_precision_score,roc_auc_score,roc_curve,precision_recall_curve,ConfusionMatrixDisplay,r2_score
 import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
@@ -282,8 +282,53 @@ def train_xgboost_fr_skopt():
             w.writerow(['mean',mean_AUprc,mean_AUC])
             w.writerow(['lower_CI',confidence_lower_AUprc,confidence_lower_AUC])
             w.writerow(['upper_CI',confidence_upper_AUprc,confidence_upper_AUC])
+    elif args.objective=='regression':
+        #Compute r^2 and plot the observed vs predicted targets
+        r2 = r2_score(y_test,y_pred)
             
-    #IMPLEMENT METRICS FOR THE REGRESSOR HERE
+        plt.plot(y_test,y_pred,linestyle='',c='b',marker='o',label="XGBoost, r^2="+str(round(r2,3)))
+        
+        plt.xlabel("observed")
+        plt.ylabel("predicted")
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(args.outdir+args.varname+"_xgb_obs_vs_pred.png",dpi=300)
+        plt.clf()
+        logging.info(args.varname+" observed vs predicted values plotted.")
+
+        #estimate confidence intervals for r^2
+        n_bootstraps = 2000
+        rng_seed = 42  # control reproducibility
+        bootstrapped_r2s = []
+
+        rng = np.random.RandomState(rng_seed)
+        for i in range(n_bootstraps):
+            # bootstrap by sampling with replacement on the prediction indices
+            indices = rng.randint(0, len(y_pred), len(y_pred))
+            if len(np.unique(y_test[indices])) < 2:
+                # We need at least one positive and one negative sample for ROC AUC
+                # to be defined: reject the sample
+                continue
+
+            score = r2_score(y_test[indices],y_pred[indices])
+            bootstrapped_r2s.append(score)
+        
+        sorted_r2s = np.array(bootstrapped_r2s)
+        sorted_r2s.sort()
+
+        # Computing the lower and upper bound of the 95% confidence interval
+        confidence_lower_r2 = sorted_r2s[int(0.025 * len(sorted_r2s))]
+        confidence_upper_r2 = sorted_r2s[int(0.975 * len(sorted_r2s))]
+        mean_r2 = np.mean(sorted_r2s)
+
+        #save the confidence intervals to a file
+        with open(args.outdir+args.varname+"_xgb_r2_CIs.txt",'wt') as outfile:
+            w = csv.writer(outfile,delimiter=',')
+            w.writerow(['name','r2'])
+            w.writerow(['mean',mean_r2])
+            w.writerow(['lower_CI',confidence_lower_r2])
+            w.writerow(['upper_CI',confidence_upper_r2])
+    
     logging.info(args.varname+" analysis completed.")    
     end = time()
     print("duration: "+str(end-start)+" s")
