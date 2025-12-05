@@ -41,11 +41,11 @@ usage: train_xgboost_fr_skopt.py [-h] [--outdir OUTDIR] [--allvars ALLVARS] [--t
 optional arguments:
   -h, --help            show this help message and exit
   --outdir OUTDIR       Full path to the output directory.
-  --allvars ALLVARS     Full path to the text file containing names of all variables used in the model.
+  --allvars ALLVARS     Full path to the text file containing names of all variables used in fitting the model (so not the --targetvar).
   --targetvar TARGETVAR
                         Target variable for prediction (default=COVIDVax).
   --nproc NPROC         Number of parallel processes used default=2).
-  --varname VARNAME     Variable name.
+  --varname VARNAME     Variable name (will be used in output file names).
   --trainfile TRAINFILE
                         Full path to the file containing training samples.
   --testfile TESTFILE   Full path to the file containing test samples.
@@ -53,9 +53,9 @@ optional arguments:
   --tree_method {hist,gpu_hist}
                         Default = hist.
   --n_estimators N_ESTIMATORS [N_ESTIMATORS ...]
-                        Comma-separated list for input for n_estimators xgboost paramemter.
+                        Space-separated list for input for n_estimators xgboost paramemter.
   --max_depth MAX_DEPTH [MAX_DEPTH ...]
-                        Comma-separated list for input for max_depth xgboost parameter.
+                        Space-separated list for input for max_depth xgboost parameter.
   --balanced {1,0}      1 if balanced class weights are used (=default), 0 if not.
 ```
 ## Input
